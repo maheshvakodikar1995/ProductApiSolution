@@ -2,7 +2,7 @@
 
 RESTful API built with:
 
-- .NET 8
+- .NET 9
 - Clean Architecture
 - CQRS + MediatR
 - Entity Framework Core
