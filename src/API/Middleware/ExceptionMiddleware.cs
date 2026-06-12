@@ -2,64 +2,74 @@
 using System.Net;
 using System.Text.Json;
 
-namespace API.Middleware
+namespace API.Middleware;
+
+public class ExceptionMiddleware
 {
-    public class ExceptionMiddleware
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionMiddleware> _logger;
+
+    public ExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
+        _next = next;
+        _logger = logger;
+    }
 
-        public ExceptionMiddleware(
-            RequestDelegate next)
+    public async Task Invoke(
+        HttpContext context)
+    {
+        try
         {
-            _next = next;
+            await _next(context);
         }
-
-        public async Task Invoke(
-            HttpContext context)
+        catch (NotFoundException ex)
         {
-            try
-            {
-                await _next(context);
-            }
-            catch (NotFoundException ex)
-            {
-                await HandleException(
-                    context,
-                    HttpStatusCode.NotFound,
-                    ex.Message);
-            }
-            catch (ValidationException ex)
-            {
-                await HandleException(
-                    context,
-                    HttpStatusCode.BadRequest,
-                    string.Join(", ", ex.Errors));
-            }
-            catch (Exception ex)
-            {
-                await HandleException(
-                    context,
-                    HttpStatusCode.InternalServerError,
-                    ex.Message);
-            }
-        }
+            _logger.LogWarning(ex, "Resource not found: {Message}", ex.Message);
 
-        private static async Task HandleException(
-            HttpContext context,
-            HttpStatusCode statusCode,
-            string message)
+            await HandleException(
+                context,
+                HttpStatusCode.NotFound,
+                ex.Message);
+        }
+        catch (ValidationException ex)
         {
-            context.Response.ContentType =
-                "application/json";
+            _logger.LogWarning(
+                "Validation failed: {Errors}",
+                string.Join(", ", ex.Errors));
 
-            context.Response.StatusCode =
-                (int)statusCode;
-
-            await context.Response.WriteAsync(
-                JsonSerializer.Serialize(new
-                {
-                    error = message
-                }));
+            await HandleException(
+                context,
+                HttpStatusCode.BadRequest,
+                string.Join(", ", ex.Errors));
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
+
+            await HandleException(
+                context,
+                HttpStatusCode.InternalServerError,
+                ex.Message);
+        }
+    }
+
+    private static async Task HandleException(
+        HttpContext context,
+        HttpStatusCode statusCode,
+        string message)
+    {
+        context.Response.ContentType =
+            "application/json";
+
+        context.Response.StatusCode =
+            (int)statusCode;
+
+        await context.Response.WriteAsync(
+            JsonSerializer.Serialize(new
+            {
+                error = message
+            }));
     }
 }
