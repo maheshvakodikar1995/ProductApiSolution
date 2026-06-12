@@ -1,32 +1,36 @@
 ﻿using Application.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Identity
+namespace Infrastructure.Identity;
+
+/// <summary>
+/// HMAC-SHA256 JWT token generator configured via <see cref="JwtSettings"/>.
+/// </summary>
+public class JwtService : IJwtService
 {
-    public class JwtService : IJwtService
+    private readonly JwtSettings _settings;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JwtService"/> class.
+    /// </summary>
+    /// <param name="options">Bound JWT configuration from appsettings.</param>
+    public JwtService(
+        IOptions<JwtSettings> options)
     {
-        private readonly JwtSettings _settings;
+        _settings = options.Value;
+    }
 
-        public JwtService(
-            IOptions<JwtSettings> options)
+    /// <inheritdoc />
+    public string GenerateAccessToken(
+        string userName,
+        string role)
+    {
+        var claims = new[]
         {
-            _settings = options.Value;
-        }
-
-        public string GenerateAccessToken(
-            string userName,
-            string role)
-        {
-            var claims = new[]
-            {
             new Claim(
                 ClaimTypes.Name,
                 userName),
@@ -36,32 +40,32 @@ namespace Infrastructure.Identity
                 role)
         };
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    _settings.SecretKey));
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(
+                _settings.SecretKey));
 
-            var credentials =
-                new SigningCredentials(
-                    key,
-                    SecurityAlgorithms.HmacSha256);
+        var credentials =
+            new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
 
-            var token =
-                new JwtSecurityToken(
-                    issuer: _settings.Issuer,
-                    audience: _settings.Audience,
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(
-                        _settings.ExpiryMinutes),
-                    signingCredentials: credentials);
+        var token =
+            new JwtSecurityToken(
+                issuer: _settings.Issuer,
+                audience: _settings.Audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(
+                    _settings.ExpiryMinutes),
+                signingCredentials: credentials);
 
-            return new JwtSecurityTokenHandler()
-                .WriteToken(token);
-        }
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
+    }
 
-        public string GenerateRefreshToken()
-        {
-            return Guid.NewGuid()
-                .ToString("N");
-        }
+    /// <inheritdoc />
+    public string GenerateRefreshToken()
+    {
+        return Guid.NewGuid()
+            .ToString("N");
     }
 }

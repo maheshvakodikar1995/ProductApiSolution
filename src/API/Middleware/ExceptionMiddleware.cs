@@ -4,11 +4,19 @@ using System.Text.Json;
 
 namespace API.Middleware;
 
+/// <summary>
+/// Catches unhandled exceptions and returns consistent JSON error responses.
+/// </summary>
 public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionMiddleware> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExceptionMiddleware"/> class.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="logger">Logger for exception diagnostics.</param>
     public ExceptionMiddleware(
         RequestDelegate next,
         ILogger<ExceptionMiddleware> logger)
@@ -17,6 +25,10 @@ public class ExceptionMiddleware
         _logger = logger;
     }
 
+    /// <summary>
+    /// Invokes the middleware and handles domain and unexpected exceptions.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
     public async Task Invoke(
         HttpContext context)
     {

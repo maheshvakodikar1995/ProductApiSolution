@@ -2,48 +2,53 @@
 using Application.Interfaces.Repositories;
 using Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Application.Features.Products.Commands.CreateProduct
-{
-    public record CreateProductCommand(
+namespace Application.Features.Products.Commands.CreateProduct;
+
+/// <summary>
+/// Command to create a new product.
+/// </summary>
+/// <param name="ProductName">Display name of the product.</param>
+public record CreateProductCommand(
     string ProductName)
     : IRequest<int>;
 
-    public class CreateProductCommandHandler
+/// <summary>
+/// Handles <see cref="CreateProductCommand"/> by persisting a new product.
+/// </summary>
+public class CreateProductCommandHandler
     : IRequestHandler<CreateProductCommand, int>
+{
+    private readonly IProductRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateProductCommandHandler"/> class.
+    /// </summary>
+    public CreateProductCommandHandler(
+        IProductRepository repository,
+        IUnitOfWork unitOfWork)
     {
-        private readonly IProductRepository _repository;
-        private readonly IUnitOfWork _unitOfWork;
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+    }
 
-        public CreateProductCommandHandler(
-            IProductRepository repository,
-            IUnitOfWork unitOfWork)
+    /// <inheritdoc />
+    public async Task<int> Handle(
+        CreateProductCommand request,
+        CancellationToken cancellationToken)
+    {
+        var product = new Product
         {
-            _repository = repository;
-            _unitOfWork = unitOfWork;
-        }
+            ProductName = request.ProductName,
+            CreatedBy = "System",
+            CreatedOn = DateTime.UtcNow
+        };
 
-        public async Task<int> Handle(
-            CreateProductCommand request,
-            CancellationToken cancellationToken)
-        {
-            var product = new Product
-            {
-                ProductName = request.ProductName,
-                CreatedBy = "System",
-                CreatedOn = DateTime.UtcNow
-            };
+        await _repository.AddAsync(product);
 
-            await _repository.AddAsync(product);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            return product.Id;
-        }
+        return product.Id;
     }
 }
