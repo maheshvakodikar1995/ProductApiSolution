@@ -1,12 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Include="obj\Debug\net9.0\.NETCoreApp,Version=v9.0.AssemblyAttributes.cs" />
+    <Compile Include="obj\Debug\net9.0\Application.AssemblyInfo.cs" />
+    <Compile Include="obj\Debug\net9.0\Application.GlobalUsings.g.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="obj\Application.csproj.nuget.dgspec.json" />
+    <Content Include="obj\project.assets.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="bin\Debug\net9.0\" />
+    <Folder Include="obj\Debug\net9.0\refint\" />
+    <Folder Include="obj\Debug\net9.0\ref\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="obj\Application.csproj.nuget.g.props" />
+    <None Include="obj\Application.csproj.nuget.g.targets" />
+    <None Include="obj\Debug\net9.0\Application.AssemblyInfoInputs.cache" />
+    <None Include="obj\Debug\net9.0\Application.assets.cache" />
+    <None Include="obj\Debug\net9.0\Application.csproj.AssemblyReference.cache" />
+    <None Include="obj\Debug\net9.0\Application.GeneratedMSBuildEditorConfig.editorconfig" />
+    <None Include="obj\project.nuget.cache" />
   </ItemGroup>
 
   <PropertyGroup>
